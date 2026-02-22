@@ -8,11 +8,14 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	// Create a file server handler pointer to a root directory
-	fileServer := http.FileServer(http.Dir("."))
+	// Root: serves index.html from current dir
+	mux.Handle("/", http.FileServer(http.Dir(".")))
 
-	// Register the file server to the root path
-	mux.Handle("/", fileServer)
+	// Assets: serves everything in the ./assets folder
+	// under the /assets/ URL path.
+	// StripPrefix removes "/assets/" from the URL before 
+	// looking in the directory.
+	mux.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
 
 	// Listen and serve on port 8080 using the custom mux
 	fmt.Println("Server starting on :8080...")
