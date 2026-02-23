@@ -8,14 +8,17 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	// Root: serves index.html from current dir
-	mux.Handle("/", http.FileServer(http.Dir(".")))
+	// Serve the main app at /app
+	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir("."))))
 
-	// Assets: serves everything in the ./assets folder
-	// under the /assets/ URL path.
-	// StripPrefix removes "/assets/" from the URL before 
-	// looking in the directory.
-	mux.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
+	// Serve assets at /app/assets
+	mux.Handle("/app/assets/", http.StripPrefix("/app/assets", http.FileServer(http.Dir("./assets"))))
+
+	// Register the health check handler
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, "OK")
+	})
 
 	// Listen and serve on port 8080 using the custom mux
 	fmt.Println("Server starting on :8080...")
