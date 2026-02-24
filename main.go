@@ -24,20 +24,20 @@ func main() {
 	mux.Handle("/app/assets/", assetHandle)
 
 	// Register the health check handler
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "OK")
 	})
 
 	// Metrics Handler: Show page stat count
-	mux.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /metrics", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		fmt.Fprintf(w, "Hits: %d\n", stats.GetHits())
 	})
 
 	// Reset Handler: Sets counter back to zero
-	mux.HandleFunc("/reset", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /reset", func(w http.ResponseWriter, r *http.Request) {
 		stats.Reset()
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "Hits reset to 0")
