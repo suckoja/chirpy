@@ -8,45 +8,58 @@ import (
 )
 
 func main() {
-	mux := http.NewServeMux()
-
-	// Ensure PageStats is initialized properly
 	stats := &metrics.PageStats{}
-
-	// Serve the main app at /app
-	fileServer := http.FileServer(http.Dir("."))
-	handleWithStats := stats.CountHits(http.StripPrefix("/app", fileServer))
-	mux.Handle("/app/", handleWithStats)
-
-	// Serve assets at /app/assets
-	assetFileServer := http.FileServer(http.Dir("./assets"))
-	assetHandle := http.StripPrefix("/app/assets", assetFileServer)
-	mux.Handle("/app/assets/", assetHandle)
-
-	// Register the health check handler
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, "OK")
-	})
-
-	// Metrics Handler: Show page stat count
-	mux.HandleFunc("GET /metrics", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintf(w, "Hits: %d\n", stats.GetHits())
-	})
-
-	// Reset Handler: Sets counter back to zero
-	mux.HandleFunc("POST /reset", func(w http.ResponseWriter, r *http.Request) {
-		stats.Reset()
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, "Hits reset to 0")
-	})
+	mux := routes(stats)
 
 	// Listen and serve on port 8080 using the custom mux
 	fmt.Println("Server starting on :8080...")
-	err := http.ListenAndServe(":8080", mux)
-	if err != nil {
+	if err := http.ListenAndServe(":8080", mux); err != nil {
 		fmt.Printf("Server failed: %s\n", err)
 	}
+}
+
+func routes(stats *metrics.PageStats) *http.ServeMux {
+	mux := http.NewServeMux()
+
+	// -- Static -- 
+	// /app/*
+	mux.Handle("/app/", stats.CountHits(mount("/app", http.Dir("."))))
+
+	// /app/assets/*
+	mux.Handle("/app/assets/", stats.CountHits(mount("/app/assets", http.Dir("./assets"))))
+
+	// -- API --
+	mux.HandleFunc("GET /api/healthz", healthzHandler)
+	mux.HandleFunc("GET /api/metrics", metricsHandler(stats))
+	mux.HandleFunc("POST /api/reset", resetMetricsHandler(stats))
+
+	return mux
+}
+
+// Register the health check handler
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "OK")
+}
+
+// Metrics Handler: Show page stat count
+func metricsHandler(stats *metrics.PageStats) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		fmt.Fprintf(w, "Hits: %d\n", stats.GetHits())
+	}
+}
+
+// Reset Handler: Sets counter back to zero
+func resetMetricsHandler(stats *metrics.PageStats) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		stats.Reset()
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, "Hits reset to 0")
+	}
+}
+
+func mount(prefix string, dir http.Dir) http.Handler {
+	return http.StripPrefix(prefix, http.FileServer(dir))
 }
