@@ -13,8 +13,8 @@ type PageStats struct {
 
 func (s *PageStats) Increment() {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.hits++
-	s.mu.Unlock()
 }
 
 // GetHits returns the current count safely
