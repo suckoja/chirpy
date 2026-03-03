@@ -1,23 +1,26 @@
-package main
+package app
 
 import (
 	"net/http"
+
+	"github.com/suckoja/chirpy/internal/handlers"
 )
 
-func routes(s *Server) *http.ServeMux {
+func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
+	h := handlers.New(s.stats)
 
 	// -- Static --
 	mux.Handle("/app/", s.stats.CountHits(mount("/app", http.Dir("."))))
 	mux.Handle("/app/assets/", s.stats.CountHits(mount("/app/assets", http.Dir("./assets"))))
 
 	// -- API --
-	mux.HandleFunc("GET /api/healthz", s.healthz)
-	mux.HandleFunc("POST /api/validate_chirp", s.ValidateChirp)
+	mux.HandleFunc("GET /api/healthz", h.Healthz)
+	mux.HandleFunc("POST /api/validate_chirp", h.ValidateChirp)
 
 	// -- Admin --
-	mux.HandleFunc("GET /admin/metrics", s.metricsPage)
-	mux.HandleFunc("POST /admin/reset", s.resetMetrics)
+	mux.HandleFunc("GET /admin/metrics", h.MetricsPage)
+	mux.HandleFunc("POST /admin/reset", h.ResetMetrics)
 
 	return mux
 }

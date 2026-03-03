@@ -11,6 +11,10 @@ type PageStats struct {
 	hits int
 }
 
+func NewPageStats() *PageStats {
+	return &PageStats{}
+}
+
 func (s *PageStats) Increment() {
 	s.mu.Lock()
 	defer s.mu.Unlock()

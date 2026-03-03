@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -26,7 +26,7 @@ func ValidateChirpText(body string) (bool, string) {
 	return true, ""
 }
 
-func (s *Server) ValidateChirp(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) ValidateChirp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	
 	var req validateChirpRequest
