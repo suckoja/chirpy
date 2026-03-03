@@ -28,7 +28,7 @@ func ValidateChirpText(body string) (bool, string) {
 
 func (h *Handlers) ValidateChirp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	
+
 	var req validateChirpRequest
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
@@ -42,7 +42,7 @@ func (h *Handlers) ValidateChirp(w http.ResponseWriter, r *http.Request) {
 	if !valid {
 		_ = httpjson.Error(w, http.StatusBadRequest, reason)
 		return
-	} 
+	}
 
 	_ = httpjson.Respond(w, http.StatusOK, validateChirpResponse{Valid: true})
 }

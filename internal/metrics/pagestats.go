@@ -7,7 +7,7 @@ import (
 
 // HitCounter holds the in-memory state for user hits.
 type PageStats struct {
-	mu sync.Mutex // Protects the map from concurrent access
+	mu   sync.Mutex // Protects the map from concurrent access
 	hits int
 }
 

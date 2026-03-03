@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/suckoja/chirpy/internal/metrics"
 	"github.com/suckoja/chirpy/internal/app"
+	"github.com/suckoja/chirpy/internal/metrics"
 )
 
 func main() {
