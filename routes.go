@@ -1,6 +1,8 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func routes(s *Server) *http.ServeMux {
 	mux := http.NewServeMux()
@@ -11,6 +13,7 @@ func routes(s *Server) *http.ServeMux {
 
 	// -- API --
 	mux.HandleFunc("GET /api/healthz", s.healthz)
+	mux.HandleFunc("POST /api/validate_chirp", s.ValidateChirp)
 
 	// -- Admin --
 	mux.HandleFunc("GET /admin/metrics", s.metricsPage)
