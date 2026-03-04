@@ -13,10 +13,15 @@ type validateChirpRequest struct {
 	Body string `json:"body"`
 }
 type validateChirpResponse struct {
-	Valid bool `json:"valid"`
+	CleanBody string `json:"cleaned_body"`
 }
 
-// Pure function: easy to reuse + test
+var profanes = map[string]struct{}{
+	"kerfuffle": {}, 
+	"sharbert": {},
+	"fornax": {},
+}
+
 func ValidateChirpText(body string) (bool, string) {
 	const limit = 140
 	body = strings.TrimSpace(body)
@@ -26,12 +31,25 @@ func ValidateChirpText(body string) (bool, string) {
 	return true, ""
 }
 
+func CleanRequestBody(body string) string {
+	const replacement = "****"
+	
+	words := strings.Fields(body)
+ 
+	for i, word := range words {
+		if _, exists := profanes[strings.ToLower(word)]; exists {
+			words[i] = replacement
+		}
+	}
+
+	return strings.Join(words, " ")
+}
+
 func (h *Handlers) ValidateChirp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var req validateChirpRequest
 	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields()
 
 	if err := dec.Decode(&req); err != nil {
 		_ = httpjson.Error(w, http.StatusBadRequest, "Invalid JSON body")
@@ -44,5 +62,6 @@ func (h *Handlers) ValidateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = httpjson.Respond(w, http.StatusOK, validateChirpResponse{Valid: true})
+	cleanBody := CleanRequestBody(req.Body)
+	_ = httpjson.Respond(w, http.StatusOK, validateChirpResponse{CleanBody: cleanBody})
 }
