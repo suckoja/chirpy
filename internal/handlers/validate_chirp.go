@@ -17,9 +17,9 @@ type validateChirpResponse struct {
 }
 
 var profanes = map[string]struct{}{
-	"kerfuffle": {}, 
-	"sharbert": {},
-	"fornax": {},
+	"kerfuffle": {},
+	"sharbert":  {},
+	"fornax":    {},
 }
 
 func ValidateChirpText(body string) (bool, string) {
@@ -33,9 +33,9 @@ func ValidateChirpText(body string) (bool, string) {
 
 func CleanRequestBody(body string) string {
 	const replacement = "****"
-	
+
 	words := strings.Fields(body)
- 
+
 	for i, word := range words {
 		if _, exists := profanes[strings.ToLower(word)]; exists {
 			words[i] = replacement

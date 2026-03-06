@@ -8,7 +8,7 @@ import (
 
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
-	h := handlers.New(s.stats)
+	h := handlers.New(s.stats, s.db)
 
 	// -- Static --
 	mux.Handle("/app/", s.stats.CountHits(mount("/app", http.Dir("."))))
@@ -17,6 +17,9 @@ func (s *Server) Routes() http.Handler {
 	// -- API --
 	mux.HandleFunc("GET /api/healthz", h.Healthz)
 	mux.HandleFunc("POST /api/validate_chirp", h.ValidateChirp)
+
+	// example future route
+	// mux.HandleFunc("POST /api/users", h.CreateUser)
 
 	// -- Admin --
 	mux.HandleFunc("GET /admin/metrics", h.MetricsPage)
