@@ -3,10 +3,13 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	_ "github.com/lib/pq"
+
+	"github.com/joho/godotenv"
 
 	"github.com/suckoja/chirpy/internal/app"
 	"github.com/suckoja/chirpy/internal/database"
@@ -14,6 +17,12 @@ import (
 )
 
 func main() {
+	// Prepare to load .env
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found")
+	}
+
 	// Prepare database connection
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {

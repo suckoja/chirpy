@@ -5,10 +5,9 @@ import (
 	"github.com/suckoja/chirpy/internal/metrics"
 )
 
-
 type Handlers struct {
 	stats *metrics.PageStats
-	db *database.Queries
+	db    *database.Queries
 }
 
 func New(stats *metrics.PageStats, db *database.Queries) *Handlers {
