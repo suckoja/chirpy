@@ -16,7 +16,13 @@ func (s *Server) Routes() http.Handler {
 
 	// -- API --
 	mux.HandleFunc("GET /api/healthz", h.Healthz)
+
+	// -- /api/users --
 	mux.HandleFunc("POST /api/users", h.CreateUser)
+
+	// -- /api/chirps --
+	mux.HandleFunc("GET /api/chirps", h.ListChirps)
+	mux.HandleFunc("GET /api/chirps/{chirpID}", h.GetChirp)
 	mux.HandleFunc("POST /api/chirps", h.CreateChirp)
 
 	// -- Admin --

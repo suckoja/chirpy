@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -29,6 +30,16 @@ var profanes = map[string]struct{}{
 	"kerfuffle": {},
 	"sharbert":  {},
 	"fornax":    {},
+}
+
+func toChirpResponse(chirp database.Chirp) chirpResponse {
+	return chirpResponse{
+		ID:        chirp.ID.String(),
+		CreatedAt: chirp.CreatedAt,
+		UpdatedAt: chirp.UpdatedAt,
+		Body:      chirp.Body,
+		UserID:    chirp.UserID.String(),
+	}
 }
 
 func ValidateChirpText(body string) (bool, string) {
@@ -82,13 +93,41 @@ func (h *Handlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := chirpResponse{
-		ID:        chirp.ID.String(),
-		CreatedAt: chirp.CreatedAt,
-		UpdatedAt: chirp.UpdatedAt,
-		Body:      chirp.Body,
-		UserID:    chirp.UserID.String(),
+	_ = httpjson.Respond(w, http.StatusCreated, toChirpResponse(chirp))
+}
+
+func (h *Handlers) ListChirps(w http.ResponseWriter, r *http.Request) {
+	chirps, err := h.db.ListChirps(r.Context())
+	if err != nil {
+		_ = httpjson.Error(w, http.StatusInternalServerError, "could not fetch chirps")
+		return
 	}
 
-	_ = httpjson.Respond(w, http.StatusCreated, resp)
+	resp := make([]chirpResponse, 0, len(chirps))
+	for _, chirp := range chirps {
+		resp = append(resp, toChirpResponse(chirp))
+	}
+
+	_ = httpjson.Respond(w, http.StatusOK, resp)
+}
+
+func (h *Handlers) GetChirp(w http.ResponseWriter, r *http.Request) {
+	chirpIDStr := r.PathValue("chirpID")
+	chirpID, err := uuid.Parse(chirpIDStr)
+	if err != nil {
+		_ = httpjson.Error(w, http.StatusBadRequest, "invalid chirp id")
+		return
+	}
+
+	chirp, err := h.db.GetChirp(r.Context(), chirpID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			_ = httpjson.Error(w, http.StatusNotFound, "chirp not found")
+			return
+		}
+		_ = httpjson.Error(w, http.StatusInternalServerError, "could not fetch chirp")
+		return
+	}
+
+	_ = httpjson.Respond(w, http.StatusOK, toChirpResponse(chirp))
 }
