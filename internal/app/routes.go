@@ -16,8 +16,8 @@ func (s *Server) Routes() http.Handler {
 
 	// -- API --
 	mux.HandleFunc("GET /api/healthz", h.Healthz)
-	mux.HandleFunc("POST /api/validate_chirp", h.ValidateChirp)
 	mux.HandleFunc("POST /api/users", h.CreateUser)
+	mux.HandleFunc("POST /api/chirps", h.CreateChirp)
 
 	// -- Admin --
 	mux.HandleFunc("GET /admin/metrics", h.MetricsPage)
