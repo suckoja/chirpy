@@ -8,8 +8,9 @@ import (
 type Server struct {
 	stats *metrics.PageStats
 	db    *database.Queries
+	jwtSecret string
 }
 
-func NewServer(stats *metrics.PageStats, db *database.Queries) *Server {
-	return &Server{stats: stats, db: db}
+func NewServer(stats *metrics.PageStats, db *database.Queries, jwtSecret string) *Server {
+	return &Server{stats: stats, db: db, jwtSecret: jwtSecret}
 }

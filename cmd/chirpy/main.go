@@ -39,9 +39,16 @@ func main() {
 
 	dbQueries := database.New(db)
 
+	// Prepare jwt secret
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		fmt.Println("JWT_SECRET is required")
+		return
+	}
+
 	// Prepare PageStat and Routing
 	stats := &metrics.PageStats{}
-	srv := app.NewServer(stats, dbQueries)
+	srv := app.NewServer(stats, dbQueries, jwtSecret)
 
 	fmt.Println("Server starting on :8080...")
 	if err := http.ListenAndServe(":8080", srv.Routes()); err != nil {

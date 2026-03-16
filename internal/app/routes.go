@@ -8,7 +8,7 @@ import (
 
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
-	h := handlers.New(s.stats, s.db)
+	h := handlers.New(s.stats, s.db, s.jwtSecret)
 
 	// -- Static --
 	mux.Handle("/app/", s.stats.CountHits(mount("/app", http.Dir("."))))

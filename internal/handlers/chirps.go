@@ -9,13 +9,13 @@ import (
 	"unicode/utf8"
 
 	"github.com/google/uuid"
+	"github.com/suckoja/chirpy/internal/auth"
 	"github.com/suckoja/chirpy/internal/database"
 	"github.com/suckoja/chirpy/internal/httpjson"
 )
 
 type createChirpRequest struct {
 	Body   string `json:"body"`
-	UserID string `json:"user_id"`
 }
 
 type chirpResponse struct {
@@ -66,24 +66,27 @@ func CleanRequestBody(body string) string {
 }
 
 func (h *Handlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
+
+	userID, err := auth.AuthenticateRequest(r.Header, h.jwtSecret)
+	if err != nil {
+		_ = httpjson.Error(w, http.StatusUnauthorized, "authenticate request failed")
+		return
+	}
+
 	var req createChirpRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		_ = httpjson.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
+	// Validate chirp
 	valid, reason := ValidateChirpText(req.Body)
 	if !valid {
 		_ = httpjson.Error(w, http.StatusBadRequest, reason)
 		return
 	}
 
-	userID, err := uuid.Parse(req.UserID)
-	if err != nil {
-		_ = httpjson.Error(w, http.StatusBadRequest, "invalid user_id")
-		return
-	}
-
+	// Create chirp in the database
 	chirp, err := h.db.CreateChirp(r.Context(), database.CreateChirpParams{
 		Body:   CleanRequestBody(req.Body),
 		UserID: userID,
